@@ -1,0 +1,10 @@
+langchain
+langchain-openai
+langchain-ollama
+langchain-chroma
+langchain-qdrant==0.2.0
+peewee
+redis
+json
+os
+psycopg2-binary
