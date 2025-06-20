@@ -8,3 +8,4 @@ redis
 json
 os
 psycopg2-binary
+uuid
