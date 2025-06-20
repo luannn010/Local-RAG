@@ -10,7 +10,7 @@ from src.history.history_manager import HistoryManager
 import os
 import uuid
 
-model = os.getenv("LLAMA_MODEL", "mistral:7b")  # Default to mistral:7b if not set
+model = os.getenv("LLAMA_MODEL", "mistral:latest")  # Default to mistral:7b if not set
 
 class RAGRunner:
     def __init__(self, collection_name: str):

@@ -1,11 +1,12 @@
 langchain
 langchain-openai
-langchain-ollama
-langchain-chroma
+langchain_ollama
 langchain-qdrant==0.2.0
+langchain_community
+langchain_core
 peewee
 redis
-json
 os
 psycopg2-binary
 uuid
+qdrant_client

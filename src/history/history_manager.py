@@ -1,19 +1,50 @@
 import redis
-from peewee import Model, TextField, SqliteDatabase, DateTimeField
+from peewee import Model, TextField, DateTimeField
+from playhouse.postgres_ext import PostgresqlExtDatabase
 from datetime import datetime
 import json
 import os
+import psycopg2  # For creating the database if it doesn't exist
 
 # Setup Redis
 redis_client = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-# Setup Peewee + PostgreSQL
-from playhouse.postgres_ext import PostgresqlExtDatabase
+# Ensure the database exists
+def ensure_database_exists():
+    db_name = os.getenv("DB_POSTGRESDB_DATABASE", "local_rag")
+    db_user = os.getenv("DB_POSTGRESDB_USER", "postgres")
+    db_password = os.getenv("DB_POSTGRESDB_PASSWORD", "postgres-password")
+    db_host = os.getenv("DB_POSTGRESDB_HOST", "localhost")
+    db_port = int(os.getenv("DB_POSTGRESDB_PORT", 5432))
 
+    try:
+        # Connect to the default 'postgres' database to check/create the target database
+        conn = psycopg2.connect(
+            dbname="postgres",
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            port=db_port
+        )
+        conn.autocommit = True
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'")
+        if not cursor.fetchone():
+            cursor.execute(f"CREATE DATABASE {db_name}")
+            print(f"Database '{db_name}' created successfully.")
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error ensuring database exists: {e}")
+
+# Ensure the database exists before connecting
+ensure_database_exists()
+
+# Setup Peewee + PostgreSQL
 pg_db = PostgresqlExtDatabase(
-    os.getenv("DB_POSTGRESDB_DATABASE", "n8n"),
-    user=os.getenv("DB_POSTGRESDB_USER", "n8n"),
-    password=os.getenv("DB_POSTGRESDB_PASSWORD", "n8n"),
+    os.getenv("DB_POSTGRESDB_DATABASE", "local_rag"),
+    user=os.getenv("DB_POSTGRESDB_USER", "postgres"),
+    password=os.getenv("DB_POSTGRESDB_PASSWORD", "postgres-password"),
     host=os.getenv("DB_POSTGRESDB_HOST", "localhost"),
     port=int(os.getenv("DB_POSTGRESDB_PORT", 5432)),
 )
@@ -28,6 +59,7 @@ class ChatHistory(Model):
     class Meta:
         database = pg_db
 
+# Connect to the database and create the table if it doesn't exist
 pg_db.connect()
 pg_db.create_tables([ChatHistory], safe=True)
 
